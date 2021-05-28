@@ -1,17 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 public class MoveRaycast : MonoBehaviour
 {
     [SerializeField] float _movePower = 0.01f;
-    [SerializeField] GameObject _markerObj = null;
+    Photon.Pun.PhotonView _view;
+    GameObject _markerObj = null;
     bool _isMove = false;
     Vector3 _targetPos = Vector3.zero;
 
     void Start()
     {
-        
+        _view = GetComponent<Photon.Pun.PhotonView>();
+        if (_view.IsMine)
+        {
+            _markerObj = GameObject.Find("/Marker");
+            var vcam = GameObject.Find("VCam").GetComponent<CinemachineVirtualCamera>();
+            vcam.Follow = this.transform;
+            vcam.LookAt = this.transform;
+        }
     }
     
     void Update()
@@ -19,6 +28,8 @@ public class MoveRaycast : MonoBehaviour
         //移動
         if (Input.GetMouseButtonDown(0))
         {
+            if (!_view.IsMine) return;
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             bool is_hit = Physics.Raycast(ray, out hit, Mathf.Infinity, LayerMask.GetMask("Ground"));
